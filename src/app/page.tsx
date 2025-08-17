@@ -1,11 +1,15 @@
+'use client';
+
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useDashboard } from '@/hooks/useDashboard';
 import { 
   UsersIcon, 
   ClipboardDocumentListIcon, 
   ExclamationTriangleIcon,
   CalendarDaysIcon,
   ClockIcon,
-  CheckCircleIcon 
+  CheckCircleIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
@@ -17,98 +21,69 @@ export default function Dashboard() {
 }
 
 function DashboardContent() {
-  const stats = [
+  const { stats, recentActivities, alerts, loading, error, refreshDashboard } = useDashboard();
+
+  const statsConfig = [
     { 
       name: 'Pazienti Attivi', 
-      value: '127', 
+      value: stats.pazientiAttivi, 
       icon: UsersIcon, 
       color: 'bg-blue-500',
       description: 'Pazienti in carico'
     },
     { 
       name: 'Interventi Oggi', 
-      value: '34', 
+      value: stats.interventiOggi, 
       icon: ClipboardDocumentListIcon, 
       color: 'bg-green-500',
       description: 'Visite programmate'
     },
     { 
       name: 'Operatori Attivi', 
-      value: '23', 
+      value: stats.operatoriAttivi, 
       icon: UsersIcon, 
       color: 'bg-purple-500',
       description: 'Operatori in servizio'
     },
     { 
       name: 'Alert Aperti', 
-      value: '8', 
+      value: stats.alertAperti, 
       icon: ExclamationTriangleIcon, 
       color: 'bg-red-500',
       description: 'Situazioni da monitorare'
     },
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'Visita domiciliare',
-      patient: 'Mario Rossi',
-      operator: 'Dott.ssa Bianchi',
-      time: '09:30',
-      status: 'completata'
-    },
-    {
-      id: 2,
-      type: 'Controllo parametri',
-      patient: 'Anna Verdi',
-      operator: 'Inf. Neri',
-      time: '10:15',
-      status: 'in corso'
-    },
-    {
-      id: 3,
-      type: 'Somministrazione farmaci',
-      patient: 'Giuseppe Blu',
-      operator: 'OSS Ferrari',
-      time: '11:00',
-      status: 'programmata'
-    },
-    {
-      id: 4,
-      type: 'Fisioterapia',
-      patient: 'Maria Gialli',
-      operator: 'Fis. Costa',
-      time: '14:30',
-      status: 'programmata'
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
-  const alerts = [
-    {
-      id: 1,
-      type: 'Parametri anomali',
-      patient: 'Carlo Viola',
-      description: 'Pressione arteriosa elevata (180/95)',
-      priority: 'alta',
-      time: '08:45'
-    },
-    {
-      id: 2,
-      type: 'Mancata visita',
-      patient: 'Elena Rosa',
-      description: 'Paziente non presente al domicilio',
-      priority: 'media',
-      time: '09:20'
-    },
-    {
-      id: 3,
-      type: 'Richiesta urgente',
-      patient: 'Franco Azzurri',
-      description: 'Familiare richiede visita non programmata',
-      priority: 'alta',
-      time: '10:10'
-    },
-  ];
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <ExclamationTriangleIcon className="w-6 h-6 text-red-600 mr-3" />
+            <div>
+              <h3 className="text-red-800 font-medium">Errore nel caricamento</h3>
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          </div>
+          <button
+            onClick={refreshDashboard}
+            className="flex items-center px-3 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+          >
+            <ArrowPathIcon className="w-4 h-4 mr-1" />
+            Riprova
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -122,6 +97,13 @@ function DashboardContent() {
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+            <button
+              onClick={refreshDashboard}
+              className="flex items-center px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 mr-3"
+            >
+              <ArrowPathIcon className="w-4 h-4 mr-1" />
+              Aggiorna
+            </button>
             <CalendarDaysIcon className="w-5 h-5 text-gray-400" />
             <span className="text-sm text-gray-600">
               {new Date().toLocaleDateString('it-IT', { 
@@ -137,7 +119,7 @@ function DashboardContent() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
+        {statsConfig.map((stat) => (
           <div key={stat.name} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center">
               <div className={`${stat.color} rounded-lg p-3`}>
@@ -164,31 +146,39 @@ function DashboardContent() {
             <p className="text-sm text-gray-500">Ultime visite e interventi</p>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-900">{activity.type}</span>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        activity.status === 'completata' ? 'bg-green-100 text-green-800' :
-                        activity.status === 'in corso' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {activity.status}
-                      </span>
+            {recentActivities.length === 0 ? (
+              <div className="text-center py-8">
+                <ClipboardDocumentListIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna attività recente</h3>
+                <p className="text-gray-500">Le attività recenti appariranno qui una volta iniziate.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-gray-900">{activity.type}</span>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          activity.status === 'completata' ? 'bg-green-100 text-green-800' :
+                          activity.status === 'in corso' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {activity.status}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-sm text-gray-600">
+                        <span className="font-medium">{activity.patient}</span> - {activity.operator}
+                      </div>
                     </div>
-                    <div className="mt-1 text-sm text-gray-600">
-                      <span className="font-medium">{activity.patient}</span> - {activity.operator}
+                    <div className="flex items-center text-sm text-gray-500">
+                      <ClockIcon className="w-4 h-4 mr-1" />
+                      {activity.time}
                     </div>
                   </div>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <ClockIcon className="w-4 h-4 mr-1" />
-                    {activity.time}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -199,29 +189,47 @@ function DashboardContent() {
             <p className="text-sm text-gray-500">Situazioni che richiedono attenzione</p>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {alerts.map((alert) => (
-                <div key={alert.id} className="border-l-4 border-red-400 bg-red-50 p-4 rounded-r-lg">
-                  <div className="flex items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-red-800">{alert.type}</span>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          alert.priority === 'alta' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {alert.priority}
-                        </span>
+            {alerts.length === 0 ? (
+              <div className="text-center py-8">
+                <CheckCircleIcon className="w-12 h-12 text-green-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Tutto sotto controllo</h3>
+                <p className="text-gray-500">Non ci sono alert aperti al momento.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {alerts.map((alert) => (
+                  <div key={alert.id} className={`border-l-4 p-4 rounded-r-lg ${
+                    alert.priority === 'alta' ? 'border-red-400 bg-red-50' :
+                    alert.priority === 'media' ? 'border-yellow-400 bg-yellow-50' :
+                    'border-blue-400 bg-blue-50'
+                  }`}>
+                    <div className="flex items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className={`text-sm font-medium ${
+                            alert.priority === 'alta' ? 'text-red-800' :
+                            alert.priority === 'media' ? 'text-yellow-800' :
+                            'text-blue-800'
+                          }`}>{alert.type}</span>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            alert.priority === 'alta' ? 'bg-red-100 text-red-800' :
+                            alert.priority === 'media' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {alert.priority}
+                          </span>
+                        </div>
+                        <div className="mt-1">
+                          <p className="text-sm font-medium text-gray-900">{alert.patient}</p>
+                          <p className="text-sm text-gray-600">{alert.description}</p>
+                        </div>
                       </div>
-                      <div className="mt-1">
-                        <p className="text-sm font-medium text-gray-900">{alert.patient}</p>
-                        <p className="text-sm text-gray-600">{alert.description}</p>
-                      </div>
+                      <div className="text-xs text-gray-500">{alert.time}</div>
                     </div>
-                    <div className="text-xs text-gray-500">{alert.time}</div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
