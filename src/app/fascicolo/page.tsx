@@ -53,20 +53,17 @@ export default function FascicoloDomiciliare() {
     );
   }
 
+  // Questi dati verranno presi dal database quando implementeremo le tabelle delle valutazioni
   const valutazioni = {
-    barthel: { punteggio: 85, data: '2024-08-01', operatore: 'Dott.ssa Bianchi' },
-    iadl: { punteggio: 6, data: '2024-08-01', operatore: 'Inf. Neri' },
-    spmsq: { punteggio: 9, data: '2024-08-01', operatore: 'Dott.ssa Bianchi' },
-    adico: { punteggio: 'Lieve', data: '2024-08-01', operatore: 'Psi. Rosa' },
-    dmi: { punteggio: 3, data: '2024-08-01', operatore: 'Dott.ssa Bianchi' }
+    barthel: { punteggio: 'N/A', data: 'N/A', operatore: 'Da definire' },
+    iadl: { punteggio: 'N/A', data: 'N/A', operatore: 'Da definire' },
+    spmsq: { punteggio: 'N/A', data: 'N/A', operatore: 'Da definire' },
+    adico: { punteggio: 'N/A', data: 'N/A', operatore: 'Da definire' },
+    dmi: { punteggio: 'N/A', data: 'N/A', operatore: 'Da definire' }
   };
 
-  const prestazioni = [
-    { data: '2024-08-15', tipo: 'Controllo glicemia', operatore: 'Inf. Neri', note: 'Valori nella norma' },
-    { data: '2024-08-14', tipo: 'Somministrazione insulina', operatore: 'OSS Ferrari', note: 'Somministrazione regolare' },
-    { data: '2024-08-13', tipo: 'Controllo pressione', operatore: 'Inf. Neri', note: 'PA: 140/85 mmHg' },
-    { data: '2024-08-12', tipo: 'Medicazione ulcera', operatore: 'Inf. Bianchi', note: 'Miglioramento evidente' }
-  ];
+  // Queste prestazioni verranno prese dalla tabella diary_entries
+  const prestazioni: any[] = [];
 
   const selectedPatientData = patients.find(p => p.id === selectedPatient);
 
@@ -260,22 +257,32 @@ export default function FascicoloDomiciliare() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {prestazioni.map((prestazione, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(prestazione.data).toLocaleDateString('it-IT')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {prestazione.tipo}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {prestazione.operatore}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {prestazione.note}
+                {prestazioni.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center">
+                      <ClipboardDocumentListIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna prestazione registrata</h3>
+                      <p className="text-gray-500">Le prestazioni erogate appariranno qui una volta registrate nel diario assistenziale.</p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  prestazioni.map((prestazione, index) => (
+                    <tr key={index}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(prestazione.data).toLocaleDateString('it-IT')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {prestazione.tipo}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {prestazione.operatore}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {prestazione.note}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

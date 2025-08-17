@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useDiary } from '@/hooks/useDiary';
+import { usePatients } from '@/hooks/usePatients';
 import { 
   PlusIcon, 
   ClockIcon, 
@@ -9,93 +11,52 @@ import {
   PencilSquareIcon,
   DocumentTextIcon,
   CalendarDaysIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  ExclamationTriangleIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 export default function DiarioAssistenziale() {
   const [selectedPatient, setSelectedPatient] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showNewEntry, setShowNewEntry] = useState(false);
+  
+  const { entries: diaryEntries, loading: diaryLoading, error: diaryError, addEntry: addDiaryEntry, updateEntry: updateDiaryEntry } = useDiary();
+  const { patients, loading: patientsLoading, error: patientsError } = usePatients();
 
-  const patients = [
-    { id: 1, nome: 'Mario Rossi', indirizzo: 'Via Roma 123, Milano' },
-    { id: 2, nome: 'Anna Verdi', indirizzo: 'Via Garibaldi 45, Roma' },
-    { id: 3, nome: 'Giuseppe Blu', indirizzo: 'Via Mazzini 78, Napoli' },
-    { id: 4, nome: 'Maria Gialli', indirizzo: 'Via Dante 90, Torino' }
-  ];
-
-  const diaryEntries = [
-    {
-      id: 1,
-      paziente: 'Mario Rossi',
-      data: '2024-08-16',
-      ora: '09:30',
-      operatori: ['Dott.ssa Bianchi', 'Inf. Neri'],
-      prestazioni: [
-        'Controllo parametri vitali',
-        'Somministrazione insulina',
-        'Controllo glicemia'
-      ],
-      note: 'Paziente in buone condizioni generali. Glicemia 120 mg/dl. Pressione 140/85 mmHg. Paziente collaborativo.',
-      firma: 'Dott.ssa M. Bianchi',
-      firmaCaregiver: 'Anna Rossi (moglie)',
-      status: 'completato'
-    },
-    {
-      id: 2,
-      paziente: 'Anna Verdi',
-      data: '2024-08-16',
-      ora: '10:15',
-      operatori: ['Inf. Costa'],
-      prestazioni: [
-        'Medicazione ulcera gamba destra',
-        'Controllo saturazione ossigeno',
-        'Fisioterapia respiratoria'
-      ],
-      note: 'Ulcera in miglioramento, riduzione dell\'essudato. Saturazione 95%. Eseguiti esercizi respiratori.',
-      firma: 'Inf. L. Costa',
-      firmaCaregiver: 'Marco Verdi (figlio)',
-      status: 'completato'
-    },
-    {
-      id: 3,
-      paziente: 'Giuseppe Blu',
-      data: '2024-08-16',
-      ora: '11:00',
-      operatori: ['Fis. Viola', 'OSS Ferrari'],
-      prestazioni: [
-        'Fisioterapia motoria arto superiore destro',
-        'Mobilizzazione passiva',
-        'Addestramento al cammino'
-      ],
-      note: 'Buona collaborazione del paziente. Miglioramento della forza muscolare arto superiore. Deambulazione assistita per 10 metri.',
-      firma: 'Fis. G. Viola',
-      firmaCaregiver: 'Elena Blu (moglie)',
-      status: 'completato'
-    },
-    {
-      id: 4,
-      paziente: 'Mario Rossi',
-      data: '2024-08-16',
-      ora: '14:30',
-      operatori: ['OSS Ferrari'],
-      prestazioni: [
-        'Igiene personale',
-        'Controllo lesione tallone sinistro',
-        'Somministrazione farmaci serali'
-      ],
-      note: 'Igiene completata. Lesione tallone in via di guarigione. Farmaci somministrati regolarmente.',
-      firma: 'OSS M. Ferrari',
-      firmaCaregiver: 'In attesa firma caregiver',
-      status: 'in_attesa_firma'
-    }
-  ];
+  const loading = diaryLoading || patientsLoading;
+  const error = diaryError || patientsError;
 
   const filteredEntries = diaryEntries.filter(entry => {
-    const matchesPatient = !selectedPatient || entry.paziente.includes(selectedPatient);
+    const patientMatch = patients.find(p => p.id === entry.patient_id);
+    const patientName = patientMatch ? `${patientMatch.nome} ${patientMatch.cognome}` : '';
+    
+    const matchesPatient = !selectedPatient || patientName.toLowerCase().includes(selectedPatient.toLowerCase());
     const matchesDate = !selectedDate || entry.data === selectedDate;
     return matchesPatient && matchesDate;
   });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="flex items-center">
+          <ExclamationTriangleIcon className="w-6 h-6 text-red-600 mr-3" />
+          <div>
+            <h3 className="text-red-800 font-medium">Errore nel caricamento</h3>
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const NewEntryForm = () => (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
@@ -118,7 +79,7 @@ export default function DiarioAssistenziale() {
             <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
               <option value="">Seleziona paziente</option>
               {patients.map(patient => (
-                <option key={patient.id} value={patient.nome}>{patient.nome}</option>
+                <option key={patient.id} value={patient.id}>{patient.nome} {patient.cognome}</option>
               ))}
             </select>
           </div>
@@ -335,7 +296,7 @@ export default function DiarioAssistenziale() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pazienti Visitati</p>
-              <p className="text-2xl font-semibold text-gray-900">{new Set(filteredEntries.map(e => e.paziente)).size}</p>
+              <p className="text-2xl font-semibold text-gray-900">{new Set(filteredEntries.map(e => e.patient_id)).size}</p>
             </div>
           </div>
         </div>
@@ -351,77 +312,99 @@ export default function DiarioAssistenziale() {
         </div>
         
         <div className="divide-y divide-gray-200">
-          {filteredEntries.map((entry) => (
-            <div key={entry.id} className="p-6 hover:bg-gray-50">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-4">
-                      <h3 className="text-lg font-medium text-gray-900">{entry.paziente}</h3>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        entry.status === 'completato' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {entry.status === 'completato' ? 'Completato' : 'In attesa firma'}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <CalendarDaysIcon className="w-4 h-4 mr-1" />
-                      {new Date(entry.data).toLocaleDateString('it-IT')}
-                      <ClockIcon className="w-4 h-4 ml-3 mr-1" />
-                      {entry.ora}
-                    </div>
-                  </div>
+          {filteredEntries.length === 0 ? (
+            <div className="p-12 text-center">
+              <DocumentTextIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna registrazione trovata</h3>
+              <p className="text-gray-500 mb-4">
+                Non ci sono registrazioni diario che corrispondono ai filtri selezionati.
+              </p>
+              <button
+                onClick={() => setShowNewEntry(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                Nuova Registrazione
+              </button>
+            </div>
+          ) : (
+            filteredEntries.map((entry) => {
+              const patientMatch = patients.find(p => p.id === entry.patient_id);
+              const patientName = patientMatch ? `${patientMatch.nome} ${patientMatch.cognome}` : 'Paziente non trovato';
+              
+              return (
+                <div key={entry.id} className="p-6 hover:bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-4">
+                          <h3 className="text-lg font-medium text-gray-900">{patientName}</h3>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            entry.status === 'completato' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {entry.status === 'completato' ? 'Completato' : 'In attesa firma'}
+                          </span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <CalendarDaysIcon className="w-4 h-4 mr-1" />
+                          {new Date(entry.data).toLocaleDateString('it-IT')}
+                          <ClockIcon className="w-4 h-4 ml-3 mr-1" />
+                          {entry.ora}
+                        </div>
+                      </div>
 
-                  {/* Operatori */}
-                  <div className="mb-3">
-                    <p className="text-sm font-medium text-gray-700">Operatori:</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {entry.operatori.map((operatore, index) => (
-                        <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                          {operatore}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                      {/* Operatori */}
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-gray-700">Operatori:</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {entry.operatori?.map((operatore, index) => (
+                            <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                              {operatore}
+                            </span>
+                          )) || <span className="text-sm text-gray-500">Nessun operatore assegnato</span>}
+                        </div>
+                      </div>
 
-                  {/* Prestazioni */}
-                  <div className="mb-3">
-                    <p className="text-sm font-medium text-gray-700">Prestazioni svolte:</p>
-                    <ul className="mt-1 space-y-1">
-                      {entry.prestazioni.map((prestazione, index) => (
-                        <li key={index} className="text-sm text-gray-600 flex items-center">
-                          <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                          {prestazione}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                      {/* Prestazioni */}
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-gray-700">Prestazioni svolte:</p>
+                        <ul className="mt-1 space-y-1">
+                          {entry.prestazioni?.map((prestazione, index) => (
+                            <li key={index} className="text-sm text-gray-600 flex items-center">
+                              <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                              {prestazione}
+                            </li>
+                          )) || <li className="text-sm text-gray-500">Nessuna prestazione registrata</li>}
+                        </ul>
+                      </div>
 
                   {/* Note */}
-                  <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-700">Note:</p>
-                    <p className="mt-1 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                      {entry.note}
-                    </p>
-                  </div>
+                  {entry.note && (
+                    <div className="mb-4">
+                      <p className="text-sm font-medium text-gray-700">Note:</p>
+                      <p className="mt-1 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                        {entry.note}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Firme */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-200">
                     <div>
                       <p className="text-xs font-medium text-gray-500">FIRMA OPERATORE</p>
-                      <p className="text-sm text-gray-900">{entry.firma}</p>
+                      <p className="text-sm text-gray-900">{entry.firma_operatore || 'Non firmato'}</p>
                     </div>
                     <div>
                       <p className="text-xs font-medium text-gray-500">FIRMA CAREGIVER/PAZIENTE</p>
                       <p className={`text-sm ${
-                        entry.firmaCaregiver.includes('In attesa') 
+                        !entry.firma_caregiver 
                           ? 'text-yellow-600 italic' 
                           : 'text-gray-900'
                       }`}>
-                        {entry.firmaCaregiver}
+                        {entry.firma_caregiver || 'In attesa firma'}
                       </p>
                     </div>
                   </div>
@@ -440,25 +423,10 @@ export default function DiarioAssistenziale() {
                 </div>
               </div>
             </div>
-          ))}
+              );
+            })
+          )}
         </div>
-
-        {filteredEntries.length === 0 && (
-          <div className="p-12 text-center">
-            <DocumentTextIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna registrazione trovata</h3>
-            <p className="text-gray-500 mb-4">
-              Non ci sono registrazioni per i criteri di ricerca selezionati.
-            </p>
-            <button
-              onClick={() => setShowNewEntry(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-flex items-center"
-            >
-              <PlusIcon className="w-4 h-4 mr-2" />
-              Aggiungi Prima Registrazione
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
