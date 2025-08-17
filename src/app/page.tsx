@@ -1,3 +1,4 @@
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { 
   UsersIcon, 
   ClipboardDocumentListIcon, 
@@ -8,6 +9,14 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function DashboardContent() {
   const stats = [
     { 
       name: 'Pazienti Attivi', 

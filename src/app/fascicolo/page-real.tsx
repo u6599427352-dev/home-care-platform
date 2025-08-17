@@ -9,11 +9,10 @@ import {
   ExclamationTriangleIcon,
   ClipboardDocumentListIcon,
   CheckCircleIcon,
-  MagnifyingGlassIcon,
-  ChartBarIcon
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
-export default function FascicoloDomiciliare() {
+export default function FascicoloDomiciliareReal() {
   const { patients, loading, error, addPatient } = usePatients();
   const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
@@ -53,25 +52,9 @@ export default function FascicoloDomiciliare() {
     );
   }
 
-  const valutazioni = {
-    barthel: { punteggio: 85, data: '2024-08-01', operatore: 'Dott.ssa Bianchi' },
-    iadl: { punteggio: 6, data: '2024-08-01', operatore: 'Inf. Neri' },
-    spmsq: { punteggio: 9, data: '2024-08-01', operatore: 'Dott.ssa Bianchi' },
-    adico: { punteggio: 'Lieve', data: '2024-08-01', operatore: 'Psi. Rosa' },
-    dmi: { punteggio: 3, data: '2024-08-01', operatore: 'Dott.ssa Bianchi' }
-  };
-
-  const prestazioni = [
-    { data: '2024-08-15', tipo: 'Controllo glicemia', operatore: 'Inf. Neri', note: 'Valori nella norma' },
-    { data: '2024-08-14', tipo: 'Somministrazione insulina', operatore: 'OSS Ferrari', note: 'Somministrazione regolare' },
-    { data: '2024-08-13', tipo: 'Controllo pressione', operatore: 'Inf. Neri', note: 'PA: 140/85 mmHg' },
-    { data: '2024-08-12', tipo: 'Medicazione ulcera', operatore: 'Inf. Bianchi', note: 'Miglioramento evidente' }
-  ];
-
   const selectedPatientData = patients.find(p => p.id === selectedPatient);
 
   if (viewMode === 'detail' && selectedPatientData) {
-
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -192,92 +175,6 @@ export default function FascicoloDomiciliare() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Valutazioni */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <ChartBarIcon className="w-5 h-5 mr-2" />
-            Strumenti di Valutazione
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900">Indice di Barthel</h4>
-              <p className="text-2xl font-bold text-blue-700">{valutazioni.barthel.punteggio}</p>
-              <p className="text-xs text-blue-600">Data: {valutazioni.barthel.data}</p>
-              <p className="text-xs text-blue-600">Operatore: {valutazioni.barthel.operatore}</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-medium text-green-900">I.A.D.L.</h4>
-              <p className="text-2xl font-bold text-green-700">{valutazioni.iadl.punteggio}</p>
-              <p className="text-xs text-green-600">Data: {valutazioni.iadl.data}</p>
-              <p className="text-xs text-green-600">Operatore: {valutazioni.iadl.operatore}</p>
-            </div>
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <h4 className="font-medium text-purple-900">SPMSQ</h4>
-              <p className="text-2xl font-bold text-purple-700">{valutazioni.spmsq.punteggio}</p>
-              <p className="text-xs text-purple-600">Data: {valutazioni.spmsq.data}</p>
-              <p className="text-xs text-purple-600">Operatore: {valutazioni.spmsq.operatore}</p>
-            </div>
-            <div className="p-4 bg-yellow-50 rounded-lg">
-              <h4 className="font-medium text-yellow-900">A.Di.Co.</h4>
-              <p className="text-2xl font-bold text-yellow-700">{valutazioni.adico.punteggio}</p>
-              <p className="text-xs text-yellow-600">Data: {valutazioni.adico.data}</p>
-              <p className="text-xs text-yellow-600">Operatore: {valutazioni.adico.operatore}</p>
-            </div>
-            <div className="p-4 bg-red-50 rounded-lg">
-              <h4 className="font-medium text-red-900">D.M.I.</h4>
-              <p className="text-2xl font-bold text-red-700">{valutazioni.dmi.punteggio}</p>
-              <p className="text-xs text-red-600">Data: {valutazioni.dmi.data}</p>
-              <p className="text-xs text-red-600">Operatore: {valutazioni.dmi.operatore}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Prestazioni Recenti */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <ClipboardDocumentListIcon className="w-5 h-5 mr-2" />
-            Prestazioni Erogate (Ultime)
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tipo Prestazione
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Operatore
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Note
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {prestazioni.map((prestazione, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(prestazione.data).toLocaleDateString('it-IT')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {prestazione.tipo}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {prestazione.operatore}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {prestazione.note}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>

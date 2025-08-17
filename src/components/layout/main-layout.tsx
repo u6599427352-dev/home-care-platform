@@ -1,5 +1,7 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from './sidebar';
 
 interface MainLayoutProps {
@@ -7,6 +9,31 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
+  const pathname = usePathname();
+  const { isAuthenticated, loading } = useAuth();
+
+  // Don't show sidebar for login page
+  const isLoginPage = pathname === '/login';
+  
+  // Show loading spinner during auth check
+  if (loading && !isLoginPage) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // For login page, show only the content without sidebar
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
+  // For other pages, show full layout only if authenticated
+  if (!isAuthenticated) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Desktop Sidebar */}
