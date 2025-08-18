@@ -181,15 +181,29 @@ export default function LoginPage() {
           {/* Demo Credentials */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Credenziali Demo:</h4>
-              <div className="space-y-1 text-sm text-blue-700">
-                <div className="flex justify-between">
-                  <span>Username:</span>
-                  <code className="font-mono bg-blue-100 px-2 py-1 rounded">admin</code>
+              <h4 className="text-sm font-medium text-blue-900 mb-3">Credenziali Demo:</h4>
+              <div className="space-y-3 text-sm text-blue-700">
+                <div>
+                  <div className="font-medium text-blue-900 mb-1">Amministratore:</div>
+                  <div className="flex justify-between">
+                    <span>Username:</span>
+                    <code className="font-mono bg-blue-100 px-2 py-1 rounded">admin</code>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Password:</span>
+                    <code className="font-mono bg-blue-100 px-2 py-1 rounded">admin</code>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>Password:</span>
-                  <code className="font-mono bg-blue-100 px-2 py-1 rounded">admin</code>
+                <div>
+                  <div className="font-medium text-blue-900 mb-1">Operatore:</div>
+                  <div className="flex justify-between">
+                    <span>Username:</span>
+                    <code className="font-mono bg-blue-100 px-2 py-1 rounded">operatore</code>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Password:</span>
+                    <code className="font-mono bg-blue-100 px-2 py-1 rounded">operatore</code>
+                  </div>
                 </div>
               </div>
             </div>

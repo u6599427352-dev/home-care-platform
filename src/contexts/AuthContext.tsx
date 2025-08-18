@@ -33,6 +33,28 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Demo users
+const DEMO_USERS = [
+  {
+    id: 'admin-user',
+    username: 'admin',
+    password: 'admin',
+    nome: 'Amministratore',
+    cognome: 'Sistema',
+    ruolo: 'admin' as const,
+    email: 'admin@homecare.local'
+  },
+  {
+    id: 'operatore-user',
+    username: 'operatore',
+    password: 'operatore',
+    nome: 'Mario',
+    cognome: 'Rossi',
+    ruolo: 'operatore' as const,
+    email: 'mario.rossi@homecare.local'
+  }
+];
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,32 +111,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setLoading(true);
 
-      // Call Anthropic API for authentication
-      const response = await fetch('/api/auth/anthropic', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Store session data in localStorage (only in browser)
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('session_token', result.sessionToken);
-          localStorage.setItem('session_expiry', result.expiresAt);
-          localStorage.setItem('user_data', JSON.stringify(result.user));
-        }
-        
-        // Update user state
-        setUser(result.user);
-
-        return { success: true };
-      } else {
-        return { success: false, error: result.error };
+      // Simple client-side authentication
+      const user = DEMO_USERS.find(u => u.username === username && u.password === password);
+      
+      if (!user) {
+        return { success: false, error: 'Credenziali non valide' };
       }
+
+      // Create session
+      const sessionToken = generateSessionToken();
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 8); // 8 hours
+
+      const userData = {
+        id: user.id,
+        username: user.username,
+        nome: user.nome,
+        cognome: user.cognome,
+        ruolo: user.ruolo,
+        email: user.email
+      };
+
+      // Store session data in localStorage (only in browser)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('session_token', sessionToken);
+        localStorage.setItem('session_expiry', expiresAt.toISOString());
+        localStorage.setItem('user_data', JSON.stringify(userData));
+      }
+      
+      // Update user state
+      setUser(userData);
+
+      return { success: true };
 
     } catch (error) {
       console.error('Login error:', error);
@@ -145,7 +173,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-
   const value: AuthContextType = {
     user,
     loading,
@@ -159,4 +186,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+// Simple session token generator
+function generateSessionToken(): string {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
