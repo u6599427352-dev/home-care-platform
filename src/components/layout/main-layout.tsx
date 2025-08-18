@@ -29,10 +29,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
     return <>{children}</>;
   }
 
-  // For other pages, show full layout only if authenticated
-  if (!isAuthenticated) {
-    return <>{children}</>;
-  }
+  // For other pages, always show full layout (skip auth check temporarily)
+  // if (!isAuthenticated) {
+  //   return <>{children}</>;
+  // }
 
   return (
     <div className="flex h-screen bg-gray-50">

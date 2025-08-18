@@ -51,6 +51,8 @@ export interface Operator {
   email: string;
   indirizzo: string;
   qualifica: string;
+  ruolo?: string;
+  specializzazione?: string;
   data_assunzione: string;
   stato: 'attivo' | 'sospeso' | 'inattivo';
   documenti: Record<string, any>;
