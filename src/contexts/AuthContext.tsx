@@ -44,6 +44,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAuthStatus = async () => {
     try {
+      // Check if we're in the browser environment
+      if (typeof window === 'undefined') {
+        setLoading(false);
+        return;
+      }
+
       const sessionToken = localStorage.getItem('session_token');
       const sessionExpiry = localStorage.getItem('session_expiry');
       
@@ -69,9 +75,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     } catch (error) {
       console.error('Auth check error:', error);
-      localStorage.removeItem('session_token');
-      localStorage.removeItem('session_expiry');
-      localStorage.removeItem('user_data');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('session_token');
+        localStorage.removeItem('session_expiry');
+        localStorage.removeItem('user_data');
+      }
     } finally {
       setLoading(false);
     }
@@ -93,10 +101,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const result = await response.json();
 
       if (result.success) {
-        // Store session data in localStorage
-        localStorage.setItem('session_token', result.sessionToken);
-        localStorage.setItem('session_expiry', result.expiresAt);
-        localStorage.setItem('user_data', JSON.stringify(result.user));
+        // Store session data in localStorage (only in browser)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('session_token', result.sessionToken);
+          localStorage.setItem('session_expiry', result.expiresAt);
+          localStorage.setItem('user_data', JSON.stringify(result.user));
+        }
         
         // Update user state
         setUser(result.user);
@@ -116,17 +126,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = () => {
     try {
-      // Clear local storage and state
-      localStorage.removeItem('session_token');
-      localStorage.removeItem('session_expiry');
-      localStorage.removeItem('user_data');
+      // Clear local storage and state (only in browser)
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('session_token');
+        localStorage.removeItem('session_expiry');
+        localStorage.removeItem('user_data');
+      }
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
       // Clear local state anyway
-      localStorage.removeItem('session_token');
-      localStorage.removeItem('session_expiry');
-      localStorage.removeItem('user_data');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('session_token');
+        localStorage.removeItem('session_expiry');
+        localStorage.removeItem('user_data');
+      }
       setUser(null);
     }
   };
